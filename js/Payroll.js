@@ -1,20 +1,12 @@
-let isUpdate = false;
+let isUpdate = true;
+const use_local_storage = "true";
 let employeePayrollObj = {};
 class EmployeePayrollData {
+    id;
     get name() { return this._name; }
     set name(name) {
-        const nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');
-        if (nameRegex.test(name)) {
-            this._name = name;
-        }
-        else throw 'Name is incorrect!';
+        this._name = name;
     }
-
-    get id() { return this._id}
-    set id(id) {
-        this._id = id;
-    }
-    
     get profilePic(){ return this._profilePic; }
     set profilePic(profilePic){
         this._profilePic = profilePic;
@@ -39,14 +31,6 @@ class EmployeePayrollData {
     }
     get startDate() { return this._startDate}
     set startDate(startDate){
-        let now = new Date();
-        startDate = new Date(startDate);
-        if(startDate > now) {
-            throw 'Start Date is a Future Date!';
-        }
-        var diff = Math.abs(now.getTime() - startDate.getTime());
-        if(diff / (1000 * 60 * 60 * 24) > 30)
-            throw 'Start Date is beyond 30 days!';
         this._startDate = startDate;
     }
     
@@ -77,7 +61,8 @@ window.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try{
-            (new EmployeePayrollData()).name = name.value;
+            // (new EmployeePayrollData()).name = name.value;
+            checkName(name.value);
             textError.textContent = "";
         }catch(e){
             textError.textContent = e;
@@ -90,16 +75,31 @@ window.addEventListener('DOMContentLoaded', () => {
     date.addEventListener('input', function() {
         const startDate = new Date(Date.parse(getInputValueById('#day') + " " + getInputValueById('#month')+" "+getInputValueById('#year')));
         try{
-            (new EmployeePayrollData()).startDate = startDate;
+            // (new EmployeePayrollData()).startDate = startDate;
+            checkStartDate(new Date(startDate))
             dateError.textContent = "";
         }catch(e){
             dateError.textContent = e;
         }
     });
-
+    document.querySelector('.cancelButton').href = "../pages/PayrollHomePage";
     checkForUpdate();
 });
 
+const checkName = (name) =>{
+    let nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');
+    if (!nameRegex.test(name))  throw 'Name is incorrect!';
+}
+const checkStartDate = (startDate) =>{
+    let now = new Date();
+    startDate = new Date(startDate);
+    if(startDate > now) {
+        throw 'Start Date is a Future Date!';
+    }
+    var diff = Math.abs(now.getTime() - startDate.getTime());
+    if(diff / (1000 * 60 * 60 * 24) > 30)
+        throw 'Start Date is beyond 30 days!';
+}
 const save = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -112,8 +112,11 @@ const save = (event) => {
     }catch(e){
         return;
     }
-}
+} 
 const setEmployeePayrollObject = () =>{
+    if(!isUpdate  && use_local_storage.match("true")){
+        employeePayrollObj.id = createNewEmployeeId();
+    }
     employeePayrollObj._name = getInputValueById('#name');
     employeePayrollObj._profilePic = getSelectedValues('[name = profile]').pop();
     employeePayrollObj._gender = getSelectedValues('[name = gender]').pop();
@@ -136,50 +139,20 @@ function createAndUpdateStorage(){
     if(employeePayrollList){
         // let employeePayrollData = null;
         // if(employeePayrollList.length > 0){
-            let employeePayrollData = employeePayrollList.find(empData => empData._id == employeePayrollObj._id);
+            let employeePayrollData = employeePayrollList.find(empData => empData.id == employeePayrollObj.id);
         // }
         if(!employeePayrollData){
-            employeePayrollList.push(createEmployeePayrollData());
+            employeePayrollList.push(employeePayrollObj);
         }else{
-            const index = employeePayrollList.map(empData => empData._id).indexOf(employeePayrollData._id);
-            employeePayrollList.splice(index, 1, createEmployeePayroll(employeePayrollData._id));
+            const index = employeePayrollList.map(empData => empData.id).indexOf(employeePayrollData.id);
+            employeePayrollList.splice(index, 1, employeePayrollObj);
         } 
     }else{
-        employeePayrollList = [createEmployeePayrollData()];
+        employeePayrollList = [employeePayrollObj];
     }
     localStorage.setItem("EmployeePayrollList", JSON.stringify(employeePayrollList));
     
 }
-
-const createEmployeePayroll = (id) =>{
-    let employeePayrollData = new EmployeePayrollData();
-    if(!id) employeePayrollData.id = createNewEmployeeId();
-    else employeePayrollData.id = id;
-    setEmployeePayrollData(employeePayrollData);
-    return employeePayrollData;
-}
-
-const setEmployeePayrollData = (employeePayrollData) => {
-    try{
-        employeePayrollData.name = employeePayrollObj._name;
-    }catch(e){
-        setTextValue('.text-error',e);
-        throw e;
-    }
-    employeePayrollData.profilePic = employeePayrollObj._profilePic;
-    employeePayrollData.gender = employeePayrollObj._gender;
-    employeePayrollData.department = employeePayrollObj._department;
-    employeePayrollData.salary = employeePayrollObj._salary;
-    employeePayrollData.note = employeePayrollObj._note;
-    try{
-        employeePayrollData.startDate = employeePayrollObj._startDate;
-    }catch(e){
-        setTextValue('.date-error', e);
-        throw e;
-    }
-    alert(employeePayrollData.toString());
-}
-
 const createNewEmployeeId = () =>{
     let empId = localStorage.getItem("EmployeeID");
     empId = !empId ? 1 : (parseInt(empId)+1).toString();
