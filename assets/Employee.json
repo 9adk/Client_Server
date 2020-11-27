@@ -24,6 +24,30 @@
       "_startDate": "29 Oct 2019",
       "_note": "Terrific Engineer",
       "_profilePic": "../assets/profile-images/Ellipse -5.png"
+    },
+    {
+      "id": "59",
+      "_name": "Aditya Kharade",
+      "_profilePic": "../assets/profile-images/Ellipse -2.png",
+      "_gender": "male",
+      "_department": [
+        "Hr"
+      ],
+      "_salary": "400000",
+      "_note": "A",
+      "_startDate": 1604169000000
+    },
+    {
+      "id": "60",
+      "_name": "Avini",
+      "_profilePic": "../assets/profile-images/Ellipse 1.png",
+      "_gender": "female",
+      "_department": [
+        "Hr"
+      ],
+      "_salary": "400000",
+      "_note": "AA",
+      "_startDate": 1604169000000
     }
   ]
 }
